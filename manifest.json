@@ -2,8 +2,8 @@
   "manifest_version": 2,
 
   "name": "SaladBar",
-  "description": "This extension checks the 10bis checkboxes for you",
-  "version": "1.0",
+  "description": "This extension checks the 10bis checkboxes for you and colors the dishes you like the most",
+  "version": "1.1",
 
   "browser_action": {
     "default_icon": "icon.png",
@@ -13,13 +13,12 @@
   "content_scripts": [
     {
       "matches": ["https://www.10bis.co.il/*"],
-      "js": ["jquery-2.2.1.min.js", "fuck.js"]
+      "js": ["jquery-2.2.1.min.js", "main.js"]
     }
   ],
 
   "permissions": [
     "activeTab",
-    "https://ajax.googleapis.com/",
     "storage"
   ]
 }

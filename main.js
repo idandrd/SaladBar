@@ -3,8 +3,53 @@ function add_buttons() {
     $(".td_dishContent").append('<div id="write_btn" class="dishContent_addDishBtn button straightButton"><span>סמן</span></button>');
 }
 
+function num2color(num) {
+    // get integer (0-255) and return rgb code of green
+    if ((num*color_multiplier) >= 255) {
+        return "#00ff00";
+    }
+    dif = 255-(num*color_multiplier);
+    hexnum = dif.toString(16);
+    full_code = "#" + hexnum + "ff" + hexnum;
+    return full_code;
+}
+
+function update_dish_counter() {
+    mu = get_main_user();
+    su = get_user_id();
+    if (mu != su) {
+        return;
+    }
+    chrome.storage.sync.get("counters", function(obj) {
+        counters = obj['counters'];
+        if (typeof(counters) == "undefined") {
+            counters = {};
+        }
+        if (!(dishid in counters)) {
+            counters[dishid] = 0;
+        }
+        if (counters[dishid] >= 255) {
+            counters[dishid] = 254;
+        }
+        counters[dishid] += 1;
+        chrome.storage.sync.set({'counters': counters}, function() {
+            console.log(counters);
+        });
+    });
+}
+
+function color_dish_boxes() {
+    chrome.storage.sync.get("counters", function(obj) {
+        counters = obj['counters'];
+        for (var key in counters) {
+            dish_score = counters[key];
+            color = num2color(dish_score);
+            $("[data-dishid='"+key+"']")[0].style['background-color'] = color;
+        }
+    });
+}
+
 function save_selection() {
-    // alert('idan!');
     userid = get_user_id();
     sid = dishid+'@'+userid;
     data = {};
@@ -46,6 +91,9 @@ function apply_selection() {
     sid = dishid+'@'+userid;
     chrome.storage.sync.get(sid, function(obj) {
         data = obj[sid];
+        if (typeof(data) == "undefined") {
+            return;
+        }
         for (var key in data.checks) {
             record_stat = data.checks[key];
             current_stat = $("#"+key).is(":checked");
@@ -70,9 +118,14 @@ function get_user_id() {
     return $("[data-dish-assigned-users-select='true'] option:selected").text();
 }
 
+function get_main_user() {
+    return $("[data-dish-assigned-users-select='true'] :first-child").text();
+}
 
 
 $(document).ready(function(){
+    color_multiplier = 4;
+    color_dish_boxes();
     dishid = "";
     $(".dishesBox").click(function(){
         dishid = $(this).attr('data-dishid');
@@ -83,5 +136,8 @@ $(document).ready(function(){
     });
     $("#write_btn").click(function() {
         apply_selection();
+    });
+    $("[data-add-dish-btn='true']").click(function() {
+        update_dish_counter();
     });
 });
